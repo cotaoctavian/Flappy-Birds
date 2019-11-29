@@ -1,2 +1,2 @@
-# Flappy-Bird
-NN + RL for Flappy Bird
+# Flappy-Birds
+NN + RL for Flappy Birds
