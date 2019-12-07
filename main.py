@@ -119,6 +119,7 @@ def play(file_name, number_of_games=1):
             p.act(action_taken)
 
 
+# When opened run:
 option = input('Do you want to train me or see me play? (Write "learn" or "play")\n')
 while option.lower() not in ['play', 'learn']:
     option = input('Write "learn" or "play"\n')
