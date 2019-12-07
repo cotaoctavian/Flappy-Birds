@@ -31,7 +31,7 @@ class Network:
         y = np.array([np.array(y), ])
         if not self.created_files:
             self.list_file.extend([optimizer, optimizer_parameters, loss_function])
-        self.model.compile(optimizer=SGD(lr=0.05, momentum=0.75, nesterov=True), loss=loss_function, metrics=['acc'],
+        self.model.compile(optimizer=SGD(lr=0.1, momentum=0.75, nesterov=True), loss=loss_function, metrics=['acc'],
                            shuffle=True)
         self.model.fit(x=x, y=y, epochs=self.epochs, batch_size=self.batch_size)
 

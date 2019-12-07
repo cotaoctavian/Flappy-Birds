@@ -39,7 +39,7 @@ def get_reward(state, first_pipe_importance=0.75):
                                                                      game_width)
 
 
-def q_learning(gamma=0.75, epsilon=1, buffer_size=50000):
+def q_learning(gamma=0.75, epsilon=1, buffer_size=5000):
     os.putenv('SDL_VIDEODRIVER', 'fbcon')
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
@@ -56,7 +56,7 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=50000):
     states_buffer = []
     labels_buffer = []
 
-    network = Network(mini_batch_size=128, epochs=15)
+    network = Network(mini_batch_size=64, epochs=1000)
     network.create_layers(activation_hidden_layers="sigmoid",
                           activation_last_layer="softmax",
                           weight_initializer="lecun_normal",
@@ -78,7 +78,7 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=50000):
         actions_q_values = network.Q(current_state.values())
         action_taken_index = np.argmax(actions_q_values)
 
-        probabilities = [epsilon, (1 - epsilon)]
+        probabilities = [(1 - epsilon), epsilon]
         actions_indexes = [0, 1]
         actions_indexes.remove(action_taken_index)
         actions_indexes = [action_taken_index] + actions_indexes
