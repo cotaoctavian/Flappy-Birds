@@ -47,8 +47,7 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=50000):
 
     p = PLE(game, fps=30, display_screen=False, force_fps=False)
     p.init()
-
-    actions = list(map(lambda x: 1 if x is not None else 0, p.getActionSet()))
+    
     last_state = None
     current_state = None
     action_taken = None
