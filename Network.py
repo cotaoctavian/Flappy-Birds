@@ -30,8 +30,8 @@ class Network:
     def train(self, x, y, loss_function, optimizer="", optimizer_parameters=""):
         # convert x, y to make it work
         x = list(map(lambda d: list(d.values()), x))
-        x = np.array([np.array(x), ])
-        y = np.array([np.array(y), ])
+        x = np.array(x)
+        y = np.array(y)
 
         # creating a part of the file_name
         if not self.created_files:
@@ -39,10 +39,11 @@ class Network:
 
         # setting up the optimizer for the neuronal network
         # RMS prop
-        self.model.compile(optimizer=RMSprop(lr=0.05, rho=0.9), loss=loss_function, metrics=None)
+        # self.model.compile(optimizer=RMSprop(lr=0.05, rho=0.9), loss=loss_function, metrics=None)
 
         # SGD
-        # self.model.compile(optimizer=SGD(lr=0.05, momentum=0.75, nesterov=True), loss=loss_function, metrics=None)
+        self.model.compile(optimizer=SGD(lr=0.1, momentum=0.75, nesterov=True), loss=loss_function, metrics=['acc'],
+                           shuffle=True)
 
         # first layer + start training
         self.model.fit(x=x, y=y, epochs=self.epochs, batch_size=self.batch_size, shuffle=True)
