@@ -8,6 +8,9 @@ game_width = 288
 game_height = 512
 game_pipe_gap = 100
 
+# Run Keras on CPU
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
 
 def get_gap_size(y_bottom, y_top):
     return y_bottom - y_top
@@ -47,7 +50,7 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=50000):
 
     p = PLE(game, fps=30, display_screen=False, force_fps=False)
     p.init()
-    
+
     last_state = None
     current_state = None
     action_taken = None
@@ -55,16 +58,17 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=50000):
     states_buffer = []
     labels_buffer = []
 
-    network = Network(mini_batch_size=128, epochs=15)
+    network = Network(mini_batch_size=128, epochs=15)  # initializing neuronal network
     network.create_layers(activation_hidden_layers="sigmoid",
                           activation_last_layer="softmax",
                           weight_initializer="lecun_normal",
-                          bias_initializer="lecun_normal")
+                          bias_initializer="lecun_normal")  # creating layers
 
     while 1:
         if p.game_over():
             p.reset_game()
             if len(states_buffer) > buffer_size:
+                # train network
                 network.train(x=states_buffer[1:], y=labels_buffer[1:], loss_function="binary_crossentropy")
 
                 states_buffer.clear()
