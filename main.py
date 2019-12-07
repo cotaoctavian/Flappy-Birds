@@ -8,6 +8,9 @@ game_width = 288
 game_height = 512
 game_pipe_gap = 100
 
+# Run Keras on CPU
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
 
 def get_gap_size(y_bottom, y_top):
     return y_bottom - y_top
@@ -48,7 +51,6 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=5000):
     p = PLE(game, fps=30, display_screen=False, force_fps=False)
     p.init()
 
-    actions = list(map(lambda x: 1 if x is not None else 0, p.getActionSet()))
     last_state = None
     current_state = None
     action_taken = None
@@ -60,12 +62,13 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=5000):
     network.create_layers(activation_hidden_layers="sigmoid",
                           activation_last_layer="softmax",
                           weight_initializer="lecun_normal",
-                          bias_initializer="lecun_normal")
+                          bias_initializer="lecun_normal")  # creating layers
 
     while 1:
         if p.game_over():
             p.reset_game()
             if len(states_buffer) > buffer_size:
+                # train network
                 network.train(x=states_buffer[1:], y=labels_buffer[1:], loss_function="binary_crossentropy")
 
                 states_buffer.clear()
@@ -119,7 +122,6 @@ def play(file_name, number_of_games=1):
             p.act(action_taken)
 
 
-# When opened run:
 option = input('Do you want to train me or see me play? (Write "learn" or "play")\n')
 while option.lower() not in ['play', 'learn']:
     option = input('Write "learn" or "play"\n')
