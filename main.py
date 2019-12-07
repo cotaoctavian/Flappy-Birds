@@ -1,6 +1,7 @@
 from ple import PLE
 from ple.games.flappybird import FlappyBird
 import os
+import sys
 import numpy as np
 from Network import Network
 
@@ -29,7 +30,7 @@ def get_reward_relative_to_pipe(y_bird, y_bottom, y_top, delta_x, max_width):
     return reward_weight * reward_for_getting_inside_the_gap * 10
 
 
-def get_reward(state, first_pipe_importance=0.75):
+def get_reward(state, first_pipe_importance=0.9):
     return first_pipe_importance * get_reward_relative_to_pipe(state['player_y'],
                                                                state['next_pipe_bottom_y'],
                                                                state['next_pipe_top_y'],
@@ -42,7 +43,7 @@ def get_reward(state, first_pipe_importance=0.75):
                                                                      game_width)
 
 
-def q_learning(gamma=0.75, epsilon=1, buffer_size=5000):
+def q_learning(gamma=0.75, epsilon=1, buffer_size=10000):
     os.putenv('SDL_VIDEODRIVER', 'fbcon')
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
@@ -52,13 +53,15 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=5000):
     p.init()
 
     last_state = None
+    last_action_taken_index = 0
+    counter = 0
     current_state = None
     action_taken = None
     reward = None
     states_buffer = []
     labels_buffer = []
 
-    network = Network(mini_batch_size=64, epochs=1000)
+    network = Network(mini_batch_size=64, epochs=100)
     network.create_layers(activation_hidden_layers="sigmoid",
                           activation_last_layer="softmax",
                           weight_initializer="lecun_normal",
@@ -75,6 +78,7 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=5000):
                 labels_buffer.clear()
 
                 epsilon = epsilon * 0.9
+                counter = 0
 
         current_state = p.getGameState()
 
@@ -91,13 +95,18 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=5000):
 
         reward = get_reward(state=current_state)
         max_q = max(actions_q_values)
-        label = actions_q_values + gamma * max_q
-        label[action_taken_index] = reward
+        label = actions_q_values
+        label[last_action_taken_index] = reward + gamma * max_q
         states_buffer += [last_state]
         labels_buffer += [label]
 
         p.act(action_taken)
         last_state = current_state
+        last_action_taken_index = action_taken_index
+
+        counter += 1
+        sys.stdout.write(f"\rGenerating training set {round((counter / buffer_size) * 100, 2)}% done. ")
+        sys.stdout.flush()
 
 
 def play(file_name, number_of_games=1):
