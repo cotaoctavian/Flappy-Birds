@@ -107,9 +107,9 @@ def q_learning(gamma=0.75, epsilon=0.9, buffer_size=500):
         labels_buffer += [label]
 
         p.act(action_taken)
-        last_state = current_state
+        last_state = current_state.copy()
         last_action_taken_index = action_taken_index
-        last_actions_q_values = actions_q_values
+        last_actions_q_values = actions_q_values.copy()
 
         counter += 1
 
