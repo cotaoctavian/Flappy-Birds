@@ -43,7 +43,7 @@ def get_reward(state, first_pipe_importance=0.9):
                                                                      game_width)
 
 
-def q_learning(gamma=0.75, epsilon=1, buffer_size=10000):
+def q_learning(gamma=0.75, epsilon=1, buffer_size=100):
     os.putenv('SDL_VIDEODRIVER', 'fbcon')
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
@@ -55,13 +55,14 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=10000):
     last_state = None
     last_action_taken_index = 0
     counter = 0
+    no_of_trainings = 0
     current_state = None
     action_taken = None
     reward = None
     states_buffer = []
     labels_buffer = []
 
-    network = Network(mini_batch_size=64, epochs=100)
+    network = Network(mini_batch_size=32, epochs=100)
     network.create_layers(activation_hidden_layers="sigmoid",
                           activation_last_layer="softmax",
                           weight_initializer="lecun_normal",
@@ -77,7 +78,10 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=10000):
                 states_buffer.clear()
                 labels_buffer.clear()
 
-                epsilon = epsilon * 0.9
+                if no_of_trainings % 5 == 0:
+                    epsilon = epsilon * 0.95
+
+                no_of_trainings += 1
                 counter = 0
 
         current_state = p.getGameState()
@@ -86,11 +90,17 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=10000):
         action_taken_index = np.argmax(actions_q_values)
 
         probabilities = [(1 - epsilon), epsilon]
-        actions_indexes = [0, 1]
+        actions_indexes = np.arange(len(actions_q_values))
+        actions_indexes = np.delete(actions_indexes, action_taken_index)
+        actions_indexes = np.append([action_taken_index], actions_indexes)
+
+        # Code before changing
+        """actions_indexes = [0, 1]
         actions_indexes.remove(action_taken_index)
         actions_indexes = [action_taken_index] + actions_indexes
-        action_taken_index = np.random.choice(actions_indexes, p=probabilities)
+        print(actions_indexes)"""
 
+        action_taken_index = np.random.choice(actions_indexes, p=probabilities)
         action_taken = None if action_taken_index == 0 else 119
 
         reward = get_reward(state=current_state)
@@ -105,6 +115,7 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=10000):
         last_action_taken_index = action_taken_index
 
         counter += 1
+
         sys.stdout.write(f"\rGenerating training set {round((counter / buffer_size) * 100, 2)}% done. ")
         sys.stdout.flush()
 
