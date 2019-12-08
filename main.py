@@ -43,7 +43,7 @@ def get_reward(state, first_pipe_importance=0.9):
                                                                      game_width)
 
 
-def q_learning(gamma=0.75, epsilon=0.9, buffer_size=100):
+def q_learning(gamma=0.75, epsilon=0.9, buffer_size=500):
     os.putenv('SDL_VIDEODRIVER', 'fbcon')
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
@@ -63,18 +63,19 @@ def q_learning(gamma=0.75, epsilon=0.9, buffer_size=100):
     states_buffer = []
     labels_buffer = []
 
-    network = Network(mini_batch_size=100, epochs=1)
-    network.create_layers(activation_hidden_layers="sigmoid",
-                          activation_last_layer="softmax",
-                          weight_initializer="lecun_normal",
-                          bias_initializer="lecun_normal")  # creating layers
+    network = Network(mini_batch_size=32, epochs=3)
+    network.create_layers(activation_hidden_layers="relu",
+                          activation_last_layer="linear",
+                          weight_initializer="glorot_uniform",
+                          bias_initializer="glorot_uniform",
+                          loss_function="binary_crossentropy")  # creating layers
 
     while 1:
         if p.game_over():
             p.reset_game()
             if len(states_buffer) > buffer_size:
                 # train network
-                network.train(x=states_buffer[1:], y=labels_buffer[1:], loss_function="binary_crossentropy")
+                network.train(x=states_buffer[1:], y=labels_buffer[1:])
 
                 states_buffer.clear()
                 labels_buffer.clear()
@@ -102,7 +103,6 @@ def q_learning(gamma=0.75, epsilon=0.9, buffer_size=100):
         max_q = max(actions_q_values)
         label = last_actions_q_values.copy()
         label[last_action_taken_index] = reward + gamma * max_q
-        print(reward)
         states_buffer += [last_state]
         labels_buffer += [label]
 
