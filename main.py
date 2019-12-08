@@ -106,6 +106,7 @@ def q_learning(gamma=0.75, epsilon=0.9, buffer_size=500):
         states_buffer += [last_state]
         labels_buffer += [label]
 
+        # update
         p.act(action_taken)
         last_state = current_state.copy()
         last_action_taken_index = action_taken_index
