@@ -20,9 +20,12 @@ class Network:
         self.list_file.extend([activation_hidden_layers, activation_last_layer, weight_initializer, bias_initializer])
 
         # second layer
-        self.model.add(Dense(150, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
+        self.model.add(Dense(8 * 2, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
                              bias_initializer=bias_initializer))
 
+        # third layer
+        self.model.add(Dense(8 * 2, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
+                             bias_initializer=bias_initializer))
         # last layer
         self.model.add(Dense(2, activation=activation_last_layer, kernel_initializer=weight_initializer,
                              bias_initializer=bias_initializer))

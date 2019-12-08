@@ -25,9 +25,9 @@ def get_reward_relative_to_pipe(y_bird, y_bottom, y_top, delta_x, max_width):
     if delta_x > max_width:
         delta_x = max_width
 
-    reward_weight = (max_width - delta_x) / max_width
+    # reward_weight = (max_width - delta_x) / max_width
 
-    return reward_weight * reward_for_getting_inside_the_gap * 10
+    return reward_for_getting_inside_the_gap
 
 
 def get_reward(state, first_pipe_importance=0.9):
@@ -43,17 +43,18 @@ def get_reward(state, first_pipe_importance=0.9):
                                                                      game_width)
 
 
-def q_learning(gamma=0.75, epsilon=1, buffer_size=100):
+def q_learning(gamma=0.75, epsilon=0.9, buffer_size=100):
     os.putenv('SDL_VIDEODRIVER', 'fbcon')
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
     game = FlappyBird(width=game_width, height=game_height, pipe_gap=game_pipe_gap)
 
-    p = PLE(game, fps=30, display_screen=False, force_fps=False)
+    p = PLE(game, fps=30, display_screen=False, force_fps=True)
     p.init()
 
     last_state = None
     last_action_taken_index = 0
+    last_actions_q_values = [0.5, 0.5]
     counter = 0
     no_of_trainings = 0
     current_state = None
@@ -62,7 +63,7 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=100):
     states_buffer = []
     labels_buffer = []
 
-    network = Network(mini_batch_size=32, epochs=100)
+    network = Network(mini_batch_size=100, epochs=1)
     network.create_layers(activation_hidden_layers="sigmoid",
                           activation_last_layer="softmax",
                           weight_initializer="lecun_normal",
@@ -78,8 +79,8 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=100):
                 states_buffer.clear()
                 labels_buffer.clear()
 
-                if no_of_trainings % 5 == 0:
-                    epsilon = epsilon * 0.95
+                if epsilon > 0.1:
+                    epsilon = epsilon * 0.9
 
                 no_of_trainings += 1
                 counter = 0
@@ -94,25 +95,21 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=100):
         actions_indexes = np.delete(actions_indexes, action_taken_index)
         actions_indexes = np.append([action_taken_index], actions_indexes)
 
-        # Code before changing
-        """actions_indexes = [0, 1]
-        actions_indexes.remove(action_taken_index)
-        actions_indexes = [action_taken_index] + actions_indexes
-        print(actions_indexes)"""
-
         action_taken_index = np.random.choice(actions_indexes, p=probabilities)
         action_taken = None if action_taken_index == 0 else 119
 
         reward = get_reward(state=current_state)
         max_q = max(actions_q_values)
-        label = actions_q_values
+        label = last_actions_q_values.copy()
         label[last_action_taken_index] = reward + gamma * max_q
+        print(reward)
         states_buffer += [last_state]
         labels_buffer += [label]
 
         p.act(action_taken)
         last_state = current_state
         last_action_taken_index = action_taken_index
+        last_actions_q_values = actions_q_values
 
         counter += 1
 
@@ -123,7 +120,7 @@ def q_learning(gamma=0.75, epsilon=1, buffer_size=100):
 def play(file_name, number_of_games=1):
     game = FlappyBird(width=game_width, height=game_height, pipe_gap=game_pipe_gap)
 
-    p = PLE(game, fps=30, display_screen=True, force_fps=False)
+    p = PLE(game, fps=30, display_screen=True, force_fps=True)
     p.init()
 
     network = Network()
