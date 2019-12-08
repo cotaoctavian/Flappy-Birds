@@ -69,7 +69,8 @@ def q_learning(file_name=None, gamma=0.9, epsilon=0.5):
                               activation_last_layer="linear",
                               weight_initializer="glorot_uniform",
                               bias_initializer="glorot_uniform",
-                              loss_function="binary_crossentropy")  # creating layers
+                              loss_function="binary_crossentropy",
+                              optimizer="Adadelta")  # creating layers
 
     while 1:
         if p.game_over():
@@ -88,7 +89,6 @@ def q_learning(file_name=None, gamma=0.9, epsilon=0.5):
 
             if epsilon > 0.1:
                 epsilon = epsilon - 0.00001
-
 
 
         current_state = p.getGameState()
@@ -140,12 +140,10 @@ def play(file_name, number_of_games=1):
             p.reset_game()
         while not p.game_over():
             state = p.getGameState()
-            print(state)
             actions_q_values = network.Q(state.values())
             action_taken_index = np.argmax(actions_q_values)
-            action_taken = None if action_taken_index == 0 else 119
 
-            p.act(action_taken)
+            p.act(None if action_taken_index == 0 else 119)
 
 
 option = input('Do you want to train me or see me play? (Write "learn" or "play")\n')
@@ -153,6 +151,8 @@ while option.lower() not in ['play', 'learn']:
     option = input('Write "learn" or "play"\n')
 if option.lower() == 'learn':
     file = input('Where should I get the weights from?(leave empty for new network)\n')
+    if file == "":
+        file = None
     q_learning(file)
 else:
     file = input('Where should I get the weights from?\n')
