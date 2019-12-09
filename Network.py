@@ -6,35 +6,34 @@ import numpy as np
 
 
 class Network:
-    def __init__(self, learning_rate=0.1):
+    def __init__(self, batch_size=128, gamma=0.75, epsilon=0.9, gap_division=3):
         self.model = Sequential()  # initializing the model
         self.list_file = []  # creating a part of the file name
-        self.learning_rate = learning_rate
+        self.batch_size = batch_size
 
-        self.created_file_name = ""
+        self.created_file_name = "batch_size-" + str(batch_size) + "_gamma-" + str(gamma) + "_eps-" + str(epsilon) + "_gap_division-" + str(gap_division) + "_"
         self.created_files = False
 
     def create_layers(self, activation_hidden_layers, activation_last_layer, weight_initializer, bias_initializer,
-                      loss_function, optimizer, optimizer_parameters=""):
+                      loss_function, optimizer, optimizer_parameters):
 
         best_optimizer = None
         if optimizer.__eq__("Adadelta"):
-            best_optimizer = Adadelta(lr=0.1, rho=0.95)
+            best_optimizer = Adadelta(optimizer_parameters['lr'], optimizer_parameters['rho'])
         elif optimizer.__eq__("SGD"):
-            best_optimizer = SGD(lr=0.1, momentum=0.75, nesterov=True)
+            best_optimizer = SGD(optimizer_parameters['lr'], optimizer_parameters['momentum'], optimizer_parameters['nesterov'])
         elif optimizer.__eq__("RMSprop"):
-            best_optimizer = RMSprop(lr=0.1, rho=0.95)
+            best_optimizer = RMSprop(optimizer_parameters['lr'], optimizer_parameters['rho'])
         elif optimizer.__eq__("Nadam"):
-            best_optimizer = Nadam(lr=0.05, beta_1=0.9, beta_2=0.999)
+            best_optimizer = Nadam(optimizer_parameters['lr'], optimizer_parameters['beta_1'], optimizer_parameters['beta_2'])
 
         # creating a part of the file_name
         self.list_file.extend([activation_hidden_layers, activation_last_layer, weight_initializer, bias_initializer,
-                               optimizer, loss_function])
+                               loss_function, optimizer, optimizer_parameters])
 
         # second layer
-        self.model.add(
-            Dense(8 * 2, input_dim=8, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
-                  bias_initializer=bias_initializer))
+        self.model.add(Dense(8 * 2, input_dim=8, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
+                             bias_initializer=bias_initializer))
 
         # third layer
         self.model.add(Dense(8 * 2, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
@@ -69,12 +68,13 @@ class Network:
         if self.created_files is False:
             counter = 0
             for item in self.list_file:
-                if counter == len(self.list_file) - 1:
-                    self.created_file_name += str(item)
-                elif item != "":
+                if type(item) == dict and item != "":
+                    for value, key in zip(item.values(), item.keys()):
+                        self.created_file_name += key + "-" + str(value) + "_"
+                    self.created_file_name = self.created_file_name[:-1]
+                elif type(item) != dict:
                     self.created_file_name += str(item) + "_"
                 counter += 1
-            # self.created_file_name = self.created_file_name[:-1]
             self.created_files = True
 
         self.model.save(filepath=self.created_file_name + "_model.h5")
@@ -83,5 +83,4 @@ class Network:
     def load(self, file_name):
         self.created_file_name = file_name
         self.model = load_model(file_name + "_model.h5")
-        print(self.model)
         self.model.load_weights(file_name + "_weights.h5")
