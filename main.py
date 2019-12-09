@@ -24,6 +24,9 @@ def get_reward_relative_to_pipe(y_bird, y_bottom, y_top, delta_x, max_width):
     delta_y = np.absolute(y_bird - (y_top + gap_size / 3))
     reward_for_getting_inside_the_gap = (gap_size / 3) - delta_y
 
+    if reward_for_getting_inside_the_gap > 0:
+        reward_for_getting_inside_the_gap = 5 * reward_for_getting_inside_the_gap
+
     if delta_x > max_width:
         delta_x = 0.9 * max_width
 
@@ -81,12 +84,13 @@ def q_learning(file_name=None, gamma=0.75, epsilon=0.9, buffer_size=50000, batch
             episode += 1
 
             # update plot
-            plt.scatter(episode, last_score)
-            plt.pause(0.001)
+            # plt.scatter(episode, last_score)
+            # plt.pause(0.001)
+            print(f'\n episode={episode}, score={last_score}')
 
             # adding the last entry correctly
             label = last_actions_q_values
-            label[last_action] = -100
+            label[last_action] = -10000
             if len(buffer) < buffer_size:
                 buffer += [(last_state, label)]
             else:
@@ -111,7 +115,7 @@ def q_learning(file_name=None, gamma=0.75, epsilon=0.9, buffer_size=50000, batch
 
         label = last_actions_q_values
         if current_score - last_score > 0:
-            label[last_action] = current_score - last_score * 100
+            label[last_action] = (current_score - last_score) * 10000
         else:
             label[last_action] = reward + gamma * max_q
 
@@ -160,7 +164,7 @@ def q_learning(file_name=None, gamma=0.75, epsilon=0.9, buffer_size=50000, batch
 def play(file_name, number_of_games=1):
     game = FlappyBird(width=game_width, height=game_height, pipe_gap=game_pipe_gap)
 
-    p = PLE(game, display_screen=True, force_fps=True)
+    p = PLE(game, display_screen=True, force_fps=False)
     p.init()
 
     network = Network()
@@ -171,7 +175,7 @@ def play(file_name, number_of_games=1):
             p.reset_game()
         while not p.game_over():
             state = p.getGameState()
-            actions_q_values = network.Q(state.values()).tolist()
+            actions_q_values = network.Q(state).tolist()
             action_taken_index = np.argmax(actions_q_values)
 
             p.act(None if action_taken_index == 0 else 119)
