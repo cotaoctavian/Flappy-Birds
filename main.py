@@ -152,6 +152,7 @@ def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0
             episode += 1
 
             # update plot
+            print(f'\n episode={episode}, epsilon={epsilon}, buffer_size={len(buffer)}, score={last_score}')
             if plot is True:
                 plt.scatter(episode, last_score)
                 plt.pause(0.001)
@@ -159,7 +160,7 @@ def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0
 
             # adding the last entry correctly
             label = last_actions_q_values
-            label[last_action] = -10000
+            label[last_action] = -1000
             if len(buffer) < buffer_size:
                 buffer += [(last_state, label)]
             else:
@@ -184,7 +185,7 @@ def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0
 
         label = last_actions_q_values
         if current_score - last_score > 0:
-            label[last_action] = (current_score - last_score) * 10000
+            label[last_action] = (current_score - last_score) * 1000
         else:
             label[last_action] = reward + gamma * max_q
 
@@ -233,7 +234,7 @@ def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0
 def play(file_name, number_of_games=1):
     game = FlappyBird(width=game_width, height=game_height, pipe_gap=game_pipe_gap)
 
-    p = PLE(game, display_screen=True, force_fps=True)
+    p = PLE(game, display_screen=True, force_fps=False)
     p.init()
 
     network = Network()
