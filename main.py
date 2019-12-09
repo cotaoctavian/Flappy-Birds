@@ -90,7 +90,7 @@ def q_learning(file_name=None, gamma=0.75, epsilon=0.9, buffer_size=50000, batch
 
             # adding the last entry correctly
             label = last_actions_q_values
-            label[last_action] = -100
+            label[last_action] = -10000
             if len(buffer) < buffer_size:
                 buffer += [(last_state, label)]
             else:
@@ -115,7 +115,7 @@ def q_learning(file_name=None, gamma=0.75, epsilon=0.9, buffer_size=50000, batch
 
         label = last_actions_q_values
         if current_score - last_score > 0:
-            label[last_action] = current_score - last_score * 100
+            label[last_action] = (current_score - last_score) * 10000
         else:
             label[last_action] = reward + gamma * max_q
 
