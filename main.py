@@ -86,7 +86,7 @@ def q_learning(file_name=None, gamma=0.75, epsilon=0.9, buffer_size=50000, batch
             # update plot
             # plt.scatter(episode, last_score)
             # plt.pause(0.001)
-            print(f'episode={episode}, epsilon={epsilon}')
+            print(f'\n episode={episode}, score={last_score}')
 
             # adding the last entry correctly
             label = last_actions_q_values
