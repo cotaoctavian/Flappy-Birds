@@ -17,7 +17,7 @@ class Network:
     def create_layers(self, activation_hidden_layers, activation_last_layer, weight_initializer, bias_initializer,
                       loss_function, optimizer, optimizer_parameters=""):
 
-        best_optimizer=None
+        best_optimizer = None
         if optimizer.__eq__("Adadelta"):
             best_optimizer = Adadelta(lr=0.1, rho=0.95)
         elif optimizer.__eq__("SGD"):
@@ -25,14 +25,11 @@ class Network:
         elif optimizer.__eq__("RMSprop"):
             best_optimizer = RMSprop(lr=0.1, rho=0.95)
         elif optimizer.__eq__("Nadam"):
-            best_optimizer = Nadam(lr = 0.05, beta_1=0.9, beta_2=0.999)
+            best_optimizer = Nadam(lr=0.05, beta_1=0.9, beta_2=0.999)
 
         # creating a part of the file_name
         self.list_file.extend([activation_hidden_layers, activation_last_layer, weight_initializer, bias_initializer,
                                optimizer, loss_function])
-
-        # Dropout layer
-        # self.model.add(Dropout(0.2))
 
         # second layer
         self.model.add(
@@ -49,29 +46,23 @@ class Network:
 
         self.model.compile(optimizer=best_optimizer, loss=loss_function, metrics=None)
 
-    def train(self, x, y):
+    def train(self, sample):
         # convert x, y to make it work
+        x = [el[0] for el in sample]
+        y = [el[1] for el in sample]
+
         x = list(map(lambda d: list(d.values()), x))
         x = np.array(x)
         y = np.array(y)
 
-        # start training
-        # self.model.train_on_batch(x=x, y=y)
-        # K.clear_session()
-        self.model.fit(x=x, y=y, epochs=1, batch_size=1, shuffle=True, verbose=0)
+        self.model.train_on_batch(x=x, y=y)
+
+        self.save_file()
 
     def Q(self, state):
         # convert state to make it actually work
-        state = list(state)
-        state = np.array([np.array(state), ])
-
-        # feed forward for Q learning to predict the actions
-        # output = self.model.predict_on_batch(state)
-        # output = self.model.predict(state, batch_size=1, verbose=0)
+        state = np.array([list(state.values()), ])
         output = K.eval(self.model(state))
-        # K.clear_session()
-
-        # return the actions
         return output[0]
 
     def save_file(self):
