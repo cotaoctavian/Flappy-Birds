@@ -1,6 +1,6 @@
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.optimizers import SGD, RMSprop, Adadelta
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.optimizers import SGD, RMSprop, Adadelta, Nadam
 import tensorflow.keras.backend as K
 import numpy as np
 
@@ -24,10 +24,15 @@ class Network:
             best_optimizer = SGD(lr=0.1, momentum=0.75, nesterov=True)
         elif optimizer.__eq__("RMSprop"):
             best_optimizer = RMSprop(lr=0.1, rho=0.95)
+        elif optimizer.__eq__("Nadam"):
+            best_optimizer = Nadam(lr = 0.05, beta_1=0.9, beta_2=0.999)
 
         # creating a part of the file_name
         self.list_file.extend([activation_hidden_layers, activation_last_layer, weight_initializer, bias_initializer,
                                optimizer, loss_function])
+
+        # Dropout layer
+        # self.model.add(Dropout(0.2))
 
         # second layer
         self.model.add(
@@ -81,10 +86,11 @@ class Network:
             # self.created_file_name = self.created_file_name[:-1]
             self.created_files = True
 
-        self.model.save(filepath='Flappy-Birds/' + self.created_file_name + "_model.h5")
-        self.model.save_weights(filepath='Flappy-Birds/' + self.created_file_name + "_weights.h5")
+        self.model.save(filepath=self.created_file_name + "_model.h5")
+        self.model.save_weights(filepath=self.created_file_name + "_weights.h5")
 
     def load(self, file_name):
         self.created_file_name = file_name
-        self.model = load_model('Flappy-Birds/' + file_name + "_model.h5")
-        self.model.load_weights('Flappy-Birds/' + file_name + "_weights.h5")
+        self.model = load_model(file_name + "_model.h5")
+        print(self.model)
+        self.model.load_weights(file_name + "_weights.h5")

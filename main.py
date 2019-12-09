@@ -21,8 +21,8 @@ def get_gap_size(y_bottom, y_top):
 
 def get_reward_relative_to_pipe(y_bird, y_bottom, y_top, delta_x, max_width):
     gap_size = get_gap_size(y_bottom, y_top)
-    delta_y = np.absolute(y_bird - (y_top + gap_size / 2))
-    reward_for_getting_inside_the_gap = (gap_size / 2) - delta_y
+    delta_y = np.absolute(y_bird - (y_top + gap_size / 4))
+    reward_for_getting_inside_the_gap = (gap_size / 4) - delta_y
 
     # if delta_x > max_width:
     #     delta_x = max_width
@@ -60,6 +60,7 @@ def q_learning(file_name=None, gamma=0.9, epsilon=0.5):
     states_buffer = []
     labels_buffer = []
     counter = 0
+    last_score = 0
 
     network = Network()
     if file_name is not None:
@@ -88,10 +89,11 @@ def q_learning(file_name=None, gamma=0.9, epsilon=0.5):
             labels_buffer.clear()
 
             if epsilon > 0.1:
-                epsilon = epsilon - 0.00001
+                epsilon = epsilon - 0.0001
 
 
         current_state = p.getGameState()
+        current_score = p.score()
         # plt.scatter(counter, game_height - current_state['player_y'])
 
         actions_q_values = network.Q(current_state.values())
@@ -105,7 +107,7 @@ def q_learning(file_name=None, gamma=0.9, epsilon=0.5):
         else:
             action = optimal_action_to_take
 
-        reward = get_reward(state=current_state)
+        reward = get_reward(state=current_state) + np.absolute(current_score - last_score) * 1000
         max_q = max(actions_q_values)
 
         label = last_actions_q_values
@@ -119,6 +121,7 @@ def q_learning(file_name=None, gamma=0.9, epsilon=0.5):
         last_action = action
         last_state = current_state
         last_actions_q_values = actions_q_values
+        last_score = current_score
 
         sys.stdout.write(f"\rThe bird's' score is: {reward}.")
         sys.stdout.flush()
@@ -129,7 +132,7 @@ def q_learning(file_name=None, gamma=0.9, epsilon=0.5):
 def play(file_name, number_of_games=1):
     game = FlappyBird(width=game_width, height=game_height, pipe_gap=game_pipe_gap)
 
-    p = PLE(game, display_screen=True, force_fps=False)
+    p = PLE(game, display_screen=True, force_fps=True)
     p.init()
 
     network = Network()
@@ -158,5 +161,3 @@ else:
     file = input('Where should I get the weights from?\n')
     number_of_games_to_play = input('How many games should I play?\n')
     play(file, int(number_of_games_to_play))
-
-#sdasda
