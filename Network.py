@@ -37,7 +37,7 @@ class Network:
                              bias_initializer=bias_initializer))
 
         # third layer
-        self.model.add(Dense(8 * 2, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
+        self.model.add(Dense(16, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
                              bias_initializer=bias_initializer))
 
         # last layer

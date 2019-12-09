@@ -78,7 +78,7 @@ def get_reward_relative_to_pipe(y_bird, y_bottom, y_top, delta_x, max_width, gap
         reward_weight = (max_width - delta_x) / max_width
 
     return reward_weight * reward_for_getting_inside_the_gap
-
+    # return -5
 
 def get_reward(state, first_pipe_importance=0.9, gap_division=3, reward_weight_decision=True):
     return first_pipe_importance * get_reward_relative_to_pipe(state['player_y'],
@@ -152,6 +152,7 @@ def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0
             episode += 1
 
             # update plot
+            print(f'\n episode={episode}, epsilon={epsilon}, buffer_size={len(buffer)}, score={last_score}')
             if plot is True:
                 plt.scatter(episode, last_score)
                 plt.pause(0.001)
@@ -159,7 +160,7 @@ def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0
 
             # adding the last entry correctly
             label = last_actions_q_values
-            label[last_action] = -10000
+            label[last_action] = -1000
             if len(buffer) < buffer_size:
                 buffer += [(last_state, label)]
             else:
@@ -184,7 +185,7 @@ def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0
 
         label = last_actions_q_values
         if current_score - last_score > 0:
-            label[last_action] = (current_score - last_score) * 10000
+            label[last_action] = (current_score - last_score) * 1000
         else:
             label[last_action] = reward + gamma * max_q
 
@@ -226,14 +227,14 @@ def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0
         last_score = current_score
 
         # Log
-        sys.stdout.write(f"\rThe bird's' score is: {reward}.")
+        sys.stdout.write(f'\rBottom: {game_height - current_state["next_pipe_bottom_y"]}, Top: {game_height - current_state["next_pipe_top_y"]}, Bird: {game_height - current_state["player_y"]}, Reward: {reward}')
         sys.stdout.flush()
 
 
 def play(file_name, number_of_games=1):
     game = FlappyBird(width=game_width, height=game_height, pipe_gap=game_pipe_gap)
 
-    p = PLE(game, display_screen=True, force_fps=True)
+    p = PLE(game, display_screen=True, force_fps=False)
     p.init()
 
     network = Network()
