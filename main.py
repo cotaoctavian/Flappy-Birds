@@ -289,7 +289,7 @@ if option.lower() == 'learn':
     else:
         batch_size = int(batch_size)
 
-    reward_weight_decision = input('Would you add reward height option? (yes/no) (false by default)\n')
+    reward_weight_decision = input('Would you add reward WEIGHT option? (yes/no) (false by default)\n')
     if reward_weight_decision == "" or reward_weight_decision == 'no':
         reward_weight_decision = False
     elif reward_weight_decision == 'yes':
