@@ -81,8 +81,9 @@ def q_learning(file_name=None, gamma=0.75, epsilon=0.9, buffer_size=50000, batch
             episode += 1
 
             # update plot
-            plt.scatter(episode, last_score)
-            plt.pause(0.001)
+            # plt.scatter(episode, last_score)
+            # plt.pause(0.001)
+            print(f'episode={episode}, epsilon={epsilon}')
 
             # adding the last entry correctly
             label = last_actions_q_values
@@ -171,7 +172,7 @@ def play(file_name, number_of_games=1):
             p.reset_game()
         while not p.game_over():
             state = p.getGameState()
-            actions_q_values = network.Q(state.values()).tolist()
+            actions_q_values = network.Q(state).tolist()
             action_taken_index = np.argmax(actions_q_values)
 
             p.act(None if action_taken_index == 0 else 119)
