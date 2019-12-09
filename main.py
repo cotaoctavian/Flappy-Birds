@@ -17,45 +17,36 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 def set_optimizer_parameters(optimizer):
     optimizer_parameters = dict()
-    if optimizer == "Adadelta":
-        learning_rate = input("Enter learning rate (leave empty for default value) \n")
+    if optimizer == "Adadelta" or optimizer == "RMSprop":
+        learning_rate = input("Enter learning rate (leave empty for default value (0.1)) \n")
         learning_rate = 0.1 if learning_rate == "" else float(learning_rate)
 
-        rho = input("Enter rho value (leave empty for default value) \n")
-        rho = 0.95 if rho == "" else float(rho)
-
-        optimizer_parameters['lr'] = learning_rate
-        optimizer_parameters['rho'] = rho
-    elif optimizer == "RMSprop":
-        learning_rate = input("Enter learning rate (leave empty for default value) \n")
-        learning_rate = 0.1 if learning_rate == "" else float(learning_rate)
-
-        rho = input("Enter rho value (leave empty for default value) \n")
+        rho = input("Enter rho value (leave empty for default value (0.95)) \n")
         rho = 0.95 if rho == "" else float(rho)
 
         optimizer_parameters['lr'] = learning_rate
         optimizer_parameters['rho'] = rho
     elif optimizer == "Nadam":
-        learning_rate = input("Enter learning rate (leave empty for default value) \n")
+        learning_rate = input("Enter learning rate (leave empty for default value (0.05)) \n")
         learning_rate = 0.05 if learning_rate == "" else float(learning_rate)
 
-        beta_1 = input("Enter beta_1 value (leave empty for default value) \n")
+        beta_1 = input("Enter beta_1 value (leave empty for default value (0.9)) \n")
         beta_1 = 0.9 if beta_1 == "" else float(beta_1)
 
-        beta_2 = input("Enter beta_2 value (leave empty for default value) \n")
-        beta_2 = 0.9 if beta_2 == "" else float(beta_2)
+        beta_2 = input("Enter beta_2 value (leave empty for default value (0.99)) \n")
+        beta_2 = 0.99 if beta_2 == "" else float(beta_2)
 
         optimizer_parameters['lr'] = learning_rate
         optimizer_parameters['beta_1'] = beta_1
         optimizer_parameters['beta_2'] = beta_2
     elif optimizer == "SGD":
-        learning_rate = input("Enter learning rate (leave empty for default value) \n")
-        learning_rate = 0.05 if learning_rate == "" else float(learning_rate)
+        learning_rate = input("Enter learning rate (leave empty for default value (0.1)) \n")
+        learning_rate = 0.1 if learning_rate == "" else float(learning_rate)
 
-        momentum = input("Enter momentum value (leave empty for default value) \n")
+        momentum = input("Enter momentum value (leave empty for default value (0.75)) \n")
         momentum = 0.75 if momentum == "" else float(momentum)
 
-        nesterov = input("Would you like to use nesterov (leave empty for default value) or (yes/no) \n")
+        nesterov = input("Would you like to use nesterov (leave empty for default value (True)) or (yes/no) \n")
         if nesterov == "":
             nesterov = True
         elif nesterov.lower() == "yes":
@@ -125,22 +116,22 @@ def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0
     if file_name is not None:
         network.load(file_name)
     else:
-        activation_hidden_layers = input("Enter the activation function for the hidden layers (leave empty for default activation) \n")
+        activation_hidden_layers = input("Enter the activation function for the hidden layers (leave empty for default activation (relu)) \n")
         activation_hidden_layers = "relu" if activation_hidden_layers == "" else activation_hidden_layers
 
-        activation_last_layer = input("Enter the activation function for the last layer (leave empty for default activation) \n")
+        activation_last_layer = input("Enter the activation function for the last layer (leave empty for default activation (linear)) \n")
         activation_last_layer = "linear" if activation_last_layer == "" else activation_last_layer
         
-        weight_initializer = input("Enter weight initializer (leave empty for default value) \n")
+        weight_initializer = input("Enter weight initializer (leave empty for default value (glorot_uniform)) \n")
         weight_initializer = "glorot_uniform" if weight_initializer == "" else weight_initializer
 
-        bias_initializer = input("Enter bias initializer (leave empty for default value) \n")
+        bias_initializer = input("Enter bias initializer (leave empty for default value (glorot_uniform)) \n")
         bias_initializer = "glorot_uniform" if bias_initializer == "" else bias_initializer
 
-        loss_func = input("Enter loss function (leave empty for default value) \n")
+        loss_func = input("Enter loss function (leave empty for default value (binary_crossentropy)) \n")
         loss_func = "binary_crossentropy" if loss_func == "" else loss_func
         
-        optimizer = input("Enter the optimizer for neural network (leave empty for default value) or (Adadelta/RMSprop/SGD/Nadam) \n")
+        optimizer = input("Enter the optimizer for neural network (leave empty for default value (Adadelta)) or (Adadelta/RMSprop/SGD/Nadam) \n")
         optimizer = "Adadelta" if optimizer == "" else optimizer
 
         optimizer_parameters = set_optimizer_parameters(optimizer)
@@ -188,7 +179,7 @@ def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0
         actions_q_values = network.Q(current_state).tolist()
 
         # Compute the label for the last_state
-        reward = get_reward(state=current_state, gap_division=gap_division, reward_height_decision=reward_weight_decision)
+        reward = get_reward(state=current_state, gap_division=gap_division, reward_weight_decision=reward_weight_decision)
         max_q = max(actions_q_values)
 
         label = last_actions_q_values
@@ -273,31 +264,31 @@ if option.lower() == 'learn':
     else:
         statistics = False
     
-    gap_div = input('Enter gap division (leave empty for default value) \n')
+    gap_div = input('Enter gap division (leave empty for default value (3)) \n')
     if gap_div == "":
         gap_div = 3
     else:
         gap_div = int(gap_div)
 
-    gamma = input('Enter gamma value (leave empty for default value) \n')
+    gamma = input('Enter gamma value (leave empty for default value (0.75)) \n')
     if gamma == "":
         gamma = 0.75
     else:
         gamma = float(gamma)
     
-    epsilon = input('Enter epsilon value (leave empty for default value) \n')
+    epsilon = input('Enter epsilon value (leave empty for default value (0.9)) \n')
     if epsilon == "":
         epsilon = 0.9
     else:
         epsilon = float(epsilon)
     
-    batch_size = input('Enter batch size (leave empty for default value) \n')
+    batch_size = input('Enter batch size (leave empty for default value (128)) \n')
     if batch_size == "":
         batch_size = 128
     else:
         batch_size = int(batch_size)
 
-    reward_weight_decision = input('Would you add reward height option? (yes/no)\n')
+    reward_weight_decision = input('Would you add reward height option? (yes/no) (false by default)\n')
     if reward_weight_decision == "" or reward_weight_decision == 'no':
         reward_weight_decision = False
     elif reward_weight_decision == 'yes':

@@ -3,6 +3,7 @@ from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import SGD, RMSprop, Adadelta, Nadam
 import tensorflow.keras.backend as K
 import numpy as np
+import os
 
 
 class Network:
@@ -81,6 +82,19 @@ class Network:
         self.model.save_weights(filepath=self.created_file_name + "_weights.h5")
 
     def load(self, file_name):
-        self.created_file_name = file_name
+        position, i, no_of_underscores = None, 0, 0
+        for ch in file_name:
+            if ch == "_":
+                no_of_underscores += 1
+            if no_of_underscores == 6:
+                position = i
+                break 
+            i += 1
+
         self.model = load_model(file_name + "_model.h5")
         self.model.load_weights(file_name + "_weights.h5")
+
+        new_file_name = file_name[position + 1:]
+        self.created_file_name += new_file_name
+        os.rename(file_name + "_model.h5", self.created_file_name + "_model.h5") 
+        os.rename(file_name + "_weights.h5", self.created_file_name + "_weights.h5")
