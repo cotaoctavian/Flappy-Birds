@@ -95,7 +95,7 @@ def get_reward(state, first_pipe_importance=0.9, gap_division=3, reward_weight_d
                                                                      gap_division)
 
 
-def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0.9, batch_size=128, reward_height_decision=True, buffer_size=50000):
+def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0.9, batch_size=128, reward_weight_decision=True, buffer_size=5000):
     os.putenv('SDL_VIDEODRIVER', 'fbcon')
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
