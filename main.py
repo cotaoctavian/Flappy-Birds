@@ -21,8 +21,8 @@ def get_gap_size(y_bottom, y_top):
 
 def get_reward_relative_to_pipe(y_bird, y_bottom, y_top, delta_x, max_width):
     gap_size = get_gap_size(y_bottom, y_top)
-    delta_y = np.absolute(y_bird - (y_top + gap_size / 3))
-    reward_for_getting_inside_the_gap = (gap_size / 3) - delta_y
+    delta_y = np.absolute(y_bird - (y_top + gap_size / 2))
+    reward_for_getting_inside_the_gap =  (gap_size / 2) - delta_y
 
     if reward_for_getting_inside_the_gap > 0:
         reward_for_getting_inside_the_gap = 5 * reward_for_getting_inside_the_gap
@@ -33,7 +33,7 @@ def get_reward_relative_to_pipe(y_bird, y_bottom, y_top, delta_x, max_width):
     reward_weight = (max_width - delta_x) / max_width
 
     return reward_weight * reward_for_getting_inside_the_gap
-
+    # return -5
 
 def get_reward(state, first_pipe_importance=0.9):
     return first_pipe_importance * get_reward_relative_to_pipe(state['player_y'],
@@ -48,7 +48,7 @@ def get_reward(state, first_pipe_importance=0.9):
                                                                      game_width)
 
 
-def q_learning(file_name=None, gamma=0.75, epsilon=0.9, buffer_size=50000, batch_size=128):
+def q_learning(file_name=None, gamma=0.9, epsilon=0.3, buffer_size=2560, batch_size=128):
     os.putenv('SDL_VIDEODRIVER', 'fbcon')
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
@@ -69,12 +69,12 @@ def q_learning(file_name=None, gamma=0.75, epsilon=0.9, buffer_size=50000, batch
     if file_name is not None:
         network.load(file_name)
     else:
-        network.create_layers(activation_hidden_layers="relu",
-                              activation_last_layer="linear",
-                              weight_initializer="glorot_uniform",
-                              bias_initializer="glorot_uniform",
-                              loss_function="binary_crossentropy",
-                              optimizer="Adadelta")
+        network.create_layers(activation_hidden_layers="tanh",
+                              activation_last_layer="tanh",
+                              weight_initializer="lecun_uniform",
+                              bias_initializer="lecun_uniform",
+                              loss_function="categorical_crossentropy",
+                              optimizer="Nadam")
 
     while 1:
         if p.game_over():
@@ -86,7 +86,7 @@ def q_learning(file_name=None, gamma=0.75, epsilon=0.9, buffer_size=50000, batch
             # update plot
             # plt.scatter(episode, last_score)
             # plt.pause(0.001)
-            print(f'\n episode={episode}, score={last_score}')
+            print(f'\n episode={episode}, epsilon={epsilon}, buffer_size={len(buffer)}, score={last_score}')
 
             # adding the last entry correctly
             label = last_actions_q_values
@@ -157,7 +157,7 @@ def q_learning(file_name=None, gamma=0.75, epsilon=0.9, buffer_size=50000, batch
         last_score = current_score
 
         # Log
-        sys.stdout.write(f"\rThe bird's' score is: {reward}.")
+        sys.stdout.write(f'\rBottom: {game_height - current_state["next_pipe_bottom_y"]}, Top: {game_height - current_state["next_pipe_top_y"]}, Bird: {game_height - current_state["player_y"]}, Reward: {reward}')
         sys.stdout.flush()
 
 

@@ -19,11 +19,11 @@ class Network:
 
         best_optimizer = None
         if optimizer.__eq__("Adadelta"):
-            best_optimizer = Adadelta(lr=0.1, rho=0.95)
+            best_optimizer = Adadelta(lr=0.1, rho=0.9)
         elif optimizer.__eq__("SGD"):
             best_optimizer = SGD(lr=0.1, momentum=0.75, nesterov=True)
         elif optimizer.__eq__("RMSprop"):
-            best_optimizer = RMSprop(lr=0.1, rho=0.95)
+            best_optimizer = RMSprop(lr=0.1, rho=0.9)
         elif optimizer.__eq__("Nadam"):
             best_optimizer = Nadam(lr=0.05, beta_1=0.9, beta_2=0.999)
 
@@ -33,11 +33,11 @@ class Network:
 
         # second layer
         self.model.add(
-            Dense(8 * 2, input_dim=8, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
+            Dense(32, input_dim=8, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
                   bias_initializer=bias_initializer))
 
         # third layer
-        self.model.add(Dense(8 * 2, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
+        self.model.add(Dense(16, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
                              bias_initializer=bias_initializer))
 
         # last layer
