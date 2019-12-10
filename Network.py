@@ -1,6 +1,7 @@
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import SGD, RMSprop, Adadelta, Nadam
+from tensorflow.keras.layers import LeakyReLU
 import tensorflow.keras.backend as K
 import numpy as np
 import os
@@ -16,7 +17,7 @@ class Network:
         self.created_files = False
 
     def create_layers(self, activation_hidden_layers, activation_last_layer, weight_initializer, bias_initializer,
-                      loss_function, optimizer, optimizer_parameters):
+                      loss_function, optimizer, optimizer_parameters, leaky_hidden_layers=False, leaky_last_layer=False):
 
         best_optimizer = None
         if optimizer.__eq__("Adadelta"):
@@ -32,16 +33,30 @@ class Network:
         self.list_file.extend([activation_hidden_layers, activation_last_layer, weight_initializer, bias_initializer,
                                loss_function, optimizer, optimizer_parameters])
 
-        # second layer
-        self.model.add(Dense(8 * 2, input_dim=8, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
+        if leaky_hidden_layers is True:
+            self.model.add(Dense(8 * 2, input_dim=8, kernel_initializer=weight_initializer, bias_initializer=bias_initializer))
+
+            self.model.add(activation_hidden_layers)
+
+            self.model.add(Dense(16, kernel_initializer=weight_initializer, bias_initializer=bias_initializer))
+            
+            self.model.add(activation_hidden_layers)
+
+        else: 
+            self.model.add(Dense(8 * 2, input_dim=8, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
                              bias_initializer=bias_initializer))
 
-        # third layer
-        self.model.add(Dense(16, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
+            self.model.add(Dense(16, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
                              bias_initializer=bias_initializer))
 
-        # last layer
-        self.model.add(Dense(2, activation=activation_last_layer, kernel_initializer=weight_initializer,
+        if leaky_last_layer is True:
+            # last layer
+            self.model.add(Dense(2, kernel_initializer=weight_initializer,
+                                bias_initializer=bias_initializer))
+
+            self.model.add(activation_last_layer)
+        else:
+            self.model.add(Dense(2, activation=activation_last_layer, kernel_initializer=weight_initializer,
                              bias_initializer=bias_initializer))
 
         self.model.compile(optimizer=best_optimizer, loss=loss_function, metrics=None)
