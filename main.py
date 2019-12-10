@@ -1,5 +1,6 @@
 from ple import PLE
 from ple.games.flappybird import FlappyBird
+from tensorflow.keras.layers import LeakyReLU
 from Network import Network
 import os
 import sys
@@ -116,12 +117,28 @@ def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0
     if file_name is not None:
         network.load(file_name, rename=True)
     else:
+        leaky_option_hidden_layers, leaky_option_last_layer = False, False
         activation_hidden_layers = input("Enter the activation function for the hidden layers (leave empty for default activation (relu)) \n")
         activation_hidden_layers = "relu" if activation_hidden_layers == "" else activation_hidden_layers
+        if activation_hidden_layers == "leaky relu":
+            alpha_relu = input("Enter alpha value for relu activation (0.3 by default)\n")
+            if alpha_relu == "0.3" or alpha_relu == "":
+                activation_hidden_layers = LeakyReLU(alpha=0.3)
+            else:
+                activation_hidden_layers = LeakyReLU(alpha=float(alpha_relu))
 
+            leaky_option_hidden_layers = True
+        
         activation_last_layer = input("Enter the activation function for the last layer (leave empty for default activation (linear)) \n")
         activation_last_layer = "linear" if activation_last_layer == "" else activation_last_layer
-        
+        if activation_last_layer == "leaky relu":
+            alpha_relu = input("Enter alpha value for relu activation (0.3 by default)\n")
+            if alpha_relu == "0.3" or alpha_relu == "":
+                activation_last_layer = LeakyReLU(alpha=0.3)
+            else:
+                activation_last_layer = LeakyReLU(alpha=float(alpha_relu))
+            leaky_option_last_layer = True  
+            
         weight_initializer = input("Enter weight initializer (leave empty for default value (glorot_uniform)) \n")
         weight_initializer = "glorot_uniform" if weight_initializer == "" else weight_initializer
 
@@ -142,7 +159,9 @@ def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0
                               bias_initializer=bias_initializer,
                               loss_function=loss_func,
                               optimizer=optimizer,
-                              optimizer_parameters=optimizer_parameters)
+                              optimizer_parameters=optimizer_parameters,
+                              leaky_hidden_layers=leaky_option_hidden_layers,
+                              leaky_last_layer=leaky_option_last_layer)
 
     while 1:
         if p.game_over():
