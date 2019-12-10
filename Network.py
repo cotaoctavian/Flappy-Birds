@@ -17,7 +17,7 @@ class Network:
         self.created_files = False
 
     def create_layers(self, activation_hidden_layers, activation_last_layer, weight_initializer, bias_initializer,
-                      loss_function, optimizer, optimizer_parameters, leaky_hidden_layers=False, leaky_last_layer=False):
+                      loss_function, optimizer, optimizer_parameters, leaky_hidden_layers, leaky_last_layer):
 
         best_optimizer = None
         if optimizer.__eq__("Adadelta"):
@@ -30,12 +30,12 @@ class Network:
             best_optimizer = Nadam(optimizer_parameters['lr'], optimizer_parameters['beta_1'], optimizer_parameters['beta_2'])
 
         # creating a part of the file_name
-        if activation_hidden_layers is True:
+        if leaky_hidden_layers is True:
             self.list_file.extend(["leaky_relu"])
         else:
             self.list_file.extend([activation_hidden_layers])
         
-        if activation_last_layer is True:
+        if leaky_last_layer is True:
             self.list_file.extend(["leaky_relu"])
         else:
             self.list_file.extend([activation_last_layer])
