@@ -81,20 +81,24 @@ class Network:
         self.model.save(filepath=self.created_file_name + "_model.h5")
         self.model.save_weights(filepath=self.created_file_name + "_weights.h5")
 
-    def load(self, file_name):
-        position, i, no_of_underscores = None, 0, 0
-        for ch in file_name:
-            if ch == "_":
-                no_of_underscores += 1
-            if no_of_underscores == 6:
-                position = i
-                break 
-            i += 1
+    def load(self, file_name, rename=True):
+        if rename is True:
+            position, i, no_of_underscores = None, 0, 0
+            for ch in file_name:
+                if ch == "_":
+                    no_of_underscores += 1
+                if no_of_underscores == 6:
+                    position = i
+                    break 
+                i += 1
+
+
+            new_file_name = file_name[position + 1:]
+            self.created_file_name += new_file_name
 
         self.model = load_model(file_name + "_model.h5")
         self.model.load_weights(file_name + "_weights.h5")
 
-        new_file_name = file_name[position + 1:]
-        self.created_file_name += new_file_name
-        os.rename(file_name + "_model.h5", self.created_file_name + "_model.h5") 
-        os.rename(file_name + "_weights.h5", self.created_file_name + "_weights.h5")
+        if rename is True:
+            os.rename(file_name + "_model.h5", self.created_file_name + "_model.h5") 
+            os.rename(file_name + "_weights.h5", self.created_file_name + "_weights.h5")

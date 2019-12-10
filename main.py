@@ -114,7 +114,7 @@ def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0
 
     network = Network(batch_size, gamma, epsilon, gap_division)
     if file_name is not None:
-        network.load(file_name)
+        network.load(file_name, rename=True)
     else:
         activation_hidden_layers = input("Enter the activation function for the hidden layers (leave empty for default activation (relu)) \n")
         activation_hidden_layers = "relu" if activation_hidden_layers == "" else activation_hidden_layers
@@ -240,7 +240,7 @@ def play(file_name, number_of_games=1):
     p.init()
 
     network = Network()
-    network.load(file_name)
+    network.load(file_name, rename=False)
 
     for i in range(number_of_games):
         if i > 0:
