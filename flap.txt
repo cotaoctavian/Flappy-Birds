@@ -1,0 +1,34 @@
+activations:
+- tanh + tanh --incercat
+- tanh + leakyRelu 
+- tanh + linear
+- leakyRelu + leakyRelu
+- leakyRelu + linear
+- linear + linear
+
+
+loss functions:
+- binary_crossentropy <- pare promitatoare --incercat
+- hinge
+- squared_hinge <- pare promitatoare + cica merge bn cu tanh : https://peltarion.com/knowledge-center/documentation/modeling-view/build-an-ai-model/loss-functions/squared-hinge
+- huber_loss / logcosh <- au cam aceleasi puncte tari
+
+
+optimizers:
+- Rmsprop are learning rate adaptiv si cica merge bine cu relu
+- Adam = Rmsprop + momentum
+- Nadam = Rmsprop + nesterov (Adam pe steroizi)
+- Adadelta = Rmsprop + learning rate-uri ce nu dispar <-- incercata de noi deja la greu
+
+Variane incercate:
+batch_size-128_gamma-0.75_eps-0.1_gap_division-3_tanh_tanh_glorot_uniform_glorot_uniform_logcosh_Adadelta_lr-0.1_rho-0.95
+batch_size-128_gamma-0.9_eps-1.0_gap_division-2_tanh_linear_glorot_uniform_glorot_uniform_binary_crossentropy_Adadelta_lr-0.1_rho-0.95
+batch_size-128_gamma-0.9_eps-0.5_gap_division-2_tanh_tanh_glorot_uniform_glorot_uniform_binary_crossentropy_Adadelta_lr-0.1_rho-0.95
+
+ML (noaptea asta):
+Sperante mari:
+batch_size-128_gamma-0.9_eps-1.0_gap_division-3_leaky_relu_tanh_random_uniform_random_uniform_squared_hinge_Nadam_lr-0.05_beta_1-0.9_beta_2-0.99
+batch_size-128_gamma-0.9_eps-1.0_gap_division-3_tanh_tanh_glorot_uniform_glorot_uniform_squared_hinge_Nadam_lr-0.05_beta_1-0.9_beta_2-0.99
+Sa ruleze si ei, poate, poate...:
+batch_size-128_gamma-0.9_eps-1.0_gap_division-3_leaky_relu_linear_random_uniform_random_uniform_binary_crossentropy_Nadam_lr-0.05_beta_1-0.9_beta_2-0.99
+batch_size-128_gamma-0.9_eps-1.0_gap_division-3_leaky_relu_leaky_relu_random_normal_random_normal_huber_loss_RMSprop_lr-0.1_rho-0.95

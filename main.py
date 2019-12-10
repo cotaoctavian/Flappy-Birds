@@ -79,7 +79,6 @@ def get_reward_relative_to_pipe(y_bird, y_bottom, y_top, delta_x, max_width, gap
         reward_weight = (max_width - delta_x) / max_width
 
     return reward_weight * reward_for_getting_inside_the_gap
-    # return -5
 
 def get_reward(state, first_pipe_importance=0.9, gap_division=3, reward_weight_decision=True):
     return first_pipe_importance * get_reward_relative_to_pipe(state['player_y'],
@@ -239,7 +238,7 @@ def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0
 
         # update epsilon
         if epsilon > 0.1:
-            epsilon = epsilon - 0.000001
+            epsilon = epsilon - 0.00000075
 
         # remember everything needed from the current state
         last_action = action
