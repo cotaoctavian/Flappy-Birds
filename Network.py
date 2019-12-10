@@ -57,7 +57,7 @@ class Network:
 
         self.model.train_on_batch(x=x, y=y)
 
-        self.save_file()
+        # self.save_file()
 
     def Q(self, state):
         # convert state to make it actually work
