@@ -30,8 +30,17 @@ class Network:
             best_optimizer = Nadam(optimizer_parameters['lr'], optimizer_parameters['beta_1'], optimizer_parameters['beta_2'])
 
         # creating a part of the file_name
-        self.list_file.extend([activation_hidden_layers, activation_last_layer, weight_initializer, bias_initializer,
-                               loss_function, optimizer, optimizer_parameters])
+        if activation_hidden_layers is True:
+            self.list_file.extend(["leaky_relu"])
+        else:
+            self.list_file.extend([activation_hidden_layers])
+        
+        if activation_last_layer is True:
+            self.list_file.extend(["leaky_relu"])
+        else:
+            self.list_file.extend([activation_last_layer])
+
+        self.list_file.extend([weight_initializer, bias_initializer, loss_function, optimizer, optimizer_parameters])
 
         if leaky_hidden_layers is True:
             self.model.add(Dense(8 * 2, input_dim=8, kernel_initializer=weight_initializer, bias_initializer=bias_initializer))
