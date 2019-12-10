@@ -13,7 +13,8 @@ class Network:
         self.list_file = []  # creating a part of the file name
         self.batch_size = batch_size
 
-        self.created_file_name = "batch_size-" + str(batch_size) + "_gamma-" + str(gamma) + "_eps-" + str(epsilon) + "_gap_division-" + str(gap_division) + "_"
+        self.created_file_name = "batch_size-" + str(batch_size) + "_gamma-" + str(gamma) + "_eps-" + str(
+            epsilon) + "_gap_division-" + str(gap_division) + "_"
         self.created_files = False
 
     def create_layers(self, activation_hidden_layers, activation_last_layer, weight_initializer, bias_initializer,
@@ -23,18 +24,20 @@ class Network:
         if optimizer.__eq__("Adadelta"):
             best_optimizer = Adadelta(optimizer_parameters['lr'], optimizer_parameters['rho'])
         elif optimizer.__eq__("SGD"):
-            best_optimizer = SGD(optimizer_parameters['lr'], optimizer_parameters['momentum'], optimizer_parameters['nesterov'])
+            best_optimizer = SGD(optimizer_parameters['lr'], optimizer_parameters['momentum'],
+                                 optimizer_parameters['nesterov'])
         elif optimizer.__eq__("RMSprop"):
             best_optimizer = RMSprop(optimizer_parameters['lr'], optimizer_parameters['rho'])
         elif optimizer.__eq__("Nadam"):
-            best_optimizer = Nadam(optimizer_parameters['lr'], optimizer_parameters['beta_1'], optimizer_parameters['beta_2'])
+            best_optimizer = Nadam(optimizer_parameters['lr'], optimizer_parameters['beta_1'],
+                                   optimizer_parameters['beta_2'])
 
         # creating a part of the file_name
         if leaky_hidden_layers is True:
             self.list_file.extend(["leaky_relu"])
         else:
             self.list_file.extend([activation_hidden_layers])
-        
+
         if leaky_last_layer is True:
             self.list_file.extend(["leaky_relu"])
         else:
@@ -43,30 +46,32 @@ class Network:
         self.list_file.extend([weight_initializer, bias_initializer, loss_function, optimizer, optimizer_parameters])
 
         if leaky_hidden_layers is True:
-            self.model.add(Dense(8 * 2, input_dim=8, kernel_initializer=weight_initializer, bias_initializer=bias_initializer))
+            self.model.add(
+                Dense(8 * 2, input_dim=8, kernel_initializer=weight_initializer, bias_initializer=bias_initializer))
 
             self.model.add(activation_hidden_layers)
 
-            self.model.add(Dense(16, kernel_initializer=weight_initializer, bias_initializer=bias_initializer))
-            
+            self.model.add(Dense(8 * 2, kernel_initializer=weight_initializer, bias_initializer=bias_initializer))
+
             self.model.add(activation_hidden_layers)
 
-        else: 
-            self.model.add(Dense(8 * 2, input_dim=8, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
-                             bias_initializer=bias_initializer))
+        else:
+            self.model.add(
+                Dense(8 * 2, input_dim=8, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
+                      bias_initializer=bias_initializer))
 
-            self.model.add(Dense(16, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
-                             bias_initializer=bias_initializer))
+            self.model.add(Dense(8 * 2, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
+                                 bias_initializer=bias_initializer))
 
         if leaky_last_layer is True:
             # last layer
             self.model.add(Dense(2, kernel_initializer=weight_initializer,
-                                bias_initializer=bias_initializer))
+                                 bias_initializer=bias_initializer))
 
             self.model.add(activation_last_layer)
         else:
             self.model.add(Dense(2, activation=activation_last_layer, kernel_initializer=weight_initializer,
-                             bias_initializer=bias_initializer))
+                                 bias_initializer=bias_initializer))
 
         self.model.compile(optimizer=best_optimizer, loss=loss_function, metrics=None)
 
@@ -113,9 +118,8 @@ class Network:
                     no_of_underscores += 1
                 if no_of_underscores == 6:
                     position = i
-                    break 
+                    break
                 i += 1
-
 
             new_file_name = file_name[position + 1:]
             self.created_file_name += new_file_name
@@ -124,5 +128,5 @@ class Network:
         self.model.load_weights(file_name + "_weights.h5")
 
         if rename is True:
-            os.rename(file_name + "_model.h5", self.created_file_name + "_model.h5") 
+            os.rename(file_name + "_model.h5", self.created_file_name + "_model.h5")
             os.rename(file_name + "_weights.h5", self.created_file_name + "_weights.h5")
