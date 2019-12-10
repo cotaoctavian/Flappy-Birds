@@ -1,324 +1,119 @@
-from ple import PLE
-from ple.games.flappybird import FlappyBird
+from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.optimizers import SGD, RMSprop, Adadelta, Nadam
 from tensorflow.keras.layers import LeakyReLU
-from Network import Network
-import os
-import sys
-import random
+import tensorflow.keras.backend as K
 import numpy as np
-import matplotlib.pyplot as plt
-
-game_width = 288
-game_height = 512
-game_pipe_gap = 100
-
-# Run Keras on CPU
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+import os
 
 
-def set_optimizer_parameters(optimizer):
-    optimizer_parameters = dict()
-    if optimizer == "Adadelta" or optimizer == "RMSprop":
-        learning_rate = input("Enter learning rate (leave empty for default value (0.1)) \n")
-        learning_rate = 0.1 if learning_rate == "" else float(learning_rate)
+class Network:
+    def __init__(self, batch_size=128, gamma=0.75, epsilon=0.9, gap_division=3):
+        self.model = Sequential()  # initializing the model
+        self.list_file = []  # creating a part of the file name
+        self.batch_size = batch_size
 
-        rho = input("Enter rho value (leave empty for default value (0.95)) \n")
-        rho = 0.95 if rho == "" else float(rho)
+        self.created_file_name = "batch_size-" + str(batch_size) + "_gamma-" + str(gamma) + "_eps-" + str(epsilon) + "_gap_division-" + str(gap_division) + "_"
+        self.created_files = False
 
-        optimizer_parameters['lr'] = learning_rate
-        optimizer_parameters['rho'] = rho
-    elif optimizer == "Nadam":
-        learning_rate = input("Enter learning rate (leave empty for default value (0.05)) \n")
-        learning_rate = 0.05 if learning_rate == "" else float(learning_rate)
+    def create_layers(self, activation_hidden_layers, activation_last_layer, weight_initializer, bias_initializer,
+                      loss_function, optimizer, optimizer_parameters, leaky_hidden_layers=False, leaky_last_layer=False):
 
-        beta_1 = input("Enter beta_1 value (leave empty for default value (0.9)) \n")
-        beta_1 = 0.9 if beta_1 == "" else float(beta_1)
+        best_optimizer = None
+        if optimizer.__eq__("Adadelta"):
+            best_optimizer = Adadelta(optimizer_parameters['lr'], optimizer_parameters['rho'])
+        elif optimizer.__eq__("SGD"):
+            best_optimizer = SGD(optimizer_parameters['lr'], optimizer_parameters['momentum'], optimizer_parameters['nesterov'])
+        elif optimizer.__eq__("RMSprop"):
+            best_optimizer = RMSprop(optimizer_parameters['lr'], optimizer_parameters['rho'])
+        elif optimizer.__eq__("Nadam"):
+            best_optimizer = Nadam(optimizer_parameters['lr'], optimizer_parameters['beta_1'], optimizer_parameters['beta_2'])
 
-        beta_2 = input("Enter beta_2 value (leave empty for default value (0.99)) \n")
-        beta_2 = 0.99 if beta_2 == "" else float(beta_2)
+        # creating a part of the file_name
+        self.list_file.extend([activation_hidden_layers, activation_last_layer, weight_initializer, bias_initializer,
+                               loss_function, optimizer, optimizer_parameters])
 
-        optimizer_parameters['lr'] = learning_rate
-        optimizer_parameters['beta_1'] = beta_1
-        optimizer_parameters['beta_2'] = beta_2
-    elif optimizer == "SGD":
-        learning_rate = input("Enter learning rate (leave empty for default value (0.1)) \n")
-        learning_rate = 0.1 if learning_rate == "" else float(learning_rate)
+        if leaky_hidden_layers is True:
+            self.model.add(Dense(8 * 2, input_dim=8, kernel_initializer=weight_initializer, bias_initializer=bias_initializer))
 
-        momentum = input("Enter momentum value (leave empty for default value (0.75)) \n")
-        momentum = 0.75 if momentum == "" else float(momentum)
+            self.model.add(activation_hidden_layers)
 
-        nesterov = input("Would you like to use nesterov (leave empty for default value (True)) or (yes/no) \n")
-        if nesterov == "":
-            nesterov = True
-        elif nesterov.lower() == "yes":
-            nesterov = True
-        elif nesterov.lower() == "no":
-            nesterov = False
-
-        optimizer_parameters['lr'] = learning_rate
-        optimizer_parameters['momentum'] = momentum
-        optimizer_parameters['nesterov'] = nesterov
-
-    return optimizer_parameters
-
-
-def get_gap_size(y_bottom, y_top):
-    return y_bottom - y_top
-
-
-def get_reward_relative_to_pipe(y_bird, y_bottom, y_top, delta_x, max_width, gap_division=3, reward_weight_decision=True):
-    gap_size = get_gap_size(y_bottom, y_top)
-    delta_y = np.absolute(y_bird - (y_top + gap_size / gap_division))
-    reward_for_getting_inside_the_gap = (gap_size / gap_division) - delta_y
-
-    if delta_x > max_width:
-        delta_x = 0.9 * max_width
-
-    reward_weight = 1
-    if reward_weight_decision is True:
-        reward_weight = (max_width - delta_x) / max_width
-
-    return reward_weight * reward_for_getting_inside_the_gap
-    # return -5
-
-def get_reward(state, first_pipe_importance=0.9, gap_division=3, reward_weight_decision=True):
-    return first_pipe_importance * get_reward_relative_to_pipe(state['player_y'],
-                                                               state['next_pipe_bottom_y'],
-                                                               state['next_pipe_top_y'],
-                                                               state['next_pipe_dist_to_player'],
-                                                               game_width,
-                                                               gap_division) + \
-           (1 - first_pipe_importance) * get_reward_relative_to_pipe(state['player_y'],
-                                                                     state['next_next_pipe_bottom_y'],
-                                                                     state['next_next_pipe_top_y'],
-                                                                     state['next_next_pipe_dist_to_player'],
-                                                                     game_width,
-                                                                     gap_division)
-
-
-def q_learning(file_name=None, plot=False, gap_division=3, gamma=0.75, epsilon=0.9, batch_size=128, reward_weight_decision=True, buffer_size=5000):
-    os.putenv('SDL_VIDEODRIVER', 'fbcon')
-    os.environ["SDL_VIDEODRIVER"] = "dummy"
-
-    game = FlappyBird(width=game_width, height=game_height, pipe_gap=game_pipe_gap)
-
-    p = PLE(game, frame_skip=6)
-    p.init()
-
-    last_state = None
-    last_action = 0
-    last_actions_q_values = [0, 0]
-    last_score = 0
-
-    buffer = []
-    episode = 0
-
-    network = Network(batch_size, gamma, epsilon, gap_division)
-    if file_name is not None:
-        network.load(file_name, rename=True)
-    else:
-        leaky_option_hidden_layers, leaky_option_last_layer = False, False
-        activation_hidden_layers = input("Enter the activation function for the hidden layers (leave empty for default activation (relu)) \n")
-        activation_hidden_layers = "relu" if activation_hidden_layers == "" else activation_hidden_layers
-        if activation_hidden_layers == "leaky relu":
-            alpha_relu = input("Enter alpha value for relu activation (0.3 by default)\n")
-            if alpha_relu == "0.3" or alpha_relu == "":
-                activation_hidden_layers = LeakyReLU(alpha=0.3)
-            else:
-                activation_hidden_layers = LeakyReLU(alpha=float(alpha_relu))
-
-            leaky_option_hidden_layers = True
-        
-        activation_last_layer = input("Enter the activation function for the last layer (leave empty for default activation (linear)) \n")
-        activation_last_layer = "linear" if activation_last_layer == "" else activation_last_layer
-        if activation_last_layer == "leaky relu":
-            alpha_relu = input("Enter alpha value for relu activation (0.3 by default)\n")
-            if alpha_relu == "0.3" or alpha_relu == "":
-                activation_last_layer = LeakyReLU(alpha=0.3)
-            else:
-                activation_last_layer = LeakyReLU(alpha=float(alpha_relu))
-            leaky_option_last_layer = True  
+            self.model.add(Dense(16, kernel_initializer=weight_initializer, bias_initializer=bias_initializer))
             
-        weight_initializer = input("Enter weight initializer (leave empty for default value (glorot_uniform)) \n")
-        weight_initializer = "glorot_uniform" if weight_initializer == "" else weight_initializer
+            self.model.add(activation_hidden_layers)
 
-        bias_initializer = input("Enter bias initializer (leave empty for default value (glorot_uniform)) \n")
-        bias_initializer = "glorot_uniform" if bias_initializer == "" else bias_initializer
+        else: 
+            self.model.add(Dense(8 * 2, input_dim=8, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
+                             bias_initializer=bias_initializer))
 
-        loss_func = input("Enter loss function (leave empty for default value (binary_crossentropy)) \n")
-        loss_func = "binary_crossentropy" if loss_func == "" else loss_func
-        
-        optimizer = input("Enter the optimizer for neural network (leave empty for default value (Adadelta)) or (Adadelta/RMSprop/SGD/Nadam) \n")
-        optimizer = "Adadelta" if optimizer == "" else optimizer
+            self.model.add(Dense(16, activation=activation_hidden_layers, kernel_initializer=weight_initializer,
+                             bias_initializer=bias_initializer))
 
-        optimizer_parameters = set_optimizer_parameters(optimizer)
+        if leaky_last_layer is True:
+            # last layer
+            self.model.add(Dense(2, kernel_initializer=weight_initializer,
+                                bias_initializer=bias_initializer))
 
-        network.create_layers(activation_hidden_layers=activation_hidden_layers,
-                              activation_last_layer=activation_last_layer,
-                              weight_initializer=weight_initializer,
-                              bias_initializer=bias_initializer,
-                              loss_function=loss_func,
-                              optimizer=optimizer,
-                              optimizer_parameters=optimizer_parameters,
-                              leaky_hidden_layers=leaky_option_hidden_layers,
-                              leaky_last_layer=leaky_option_last_layer)
-
-    while 1:
-        if p.game_over():
-            # restart the game
-            p.reset_game()
-            # count episodes
-            episode += 1
-            if episode % 1000 == 0:
-                network.save_file()
-
-            # update plot
-            print(f'\n episode={episode}, epsilon={epsilon}, buffer_size={len(buffer)}, score={last_score}')
-            if plot is True:
-                plt.scatter(episode, last_score)
-                plt.pause(0.001)
-                print(f'\n episode={episode}, score={last_score}')
-
-            # adding the last entry correctly
-            label = last_actions_q_values
-            label[last_action] = -1000
-            if len(buffer) < buffer_size:
-                buffer += [(last_state, label)]
-            else:
-                buffer = buffer[1:] + [(last_state, label)]
-
-            # reset all
-            last_state = None
-            last_action = 0
-            last_actions_q_values = [0, 0]
-            last_score = 0
-
-        # look at the current state
-        current_state = p.getGameState()
-        current_score = p.score()
-
-        # compute the actions' Q values
-        actions_q_values = network.Q(current_state).tolist()
-
-        # Compute the label for the last_state
-        reward = get_reward(state=current_state, gap_division=gap_division, reward_weight_decision=reward_weight_decision)
-        max_q = max(actions_q_values)
-
-        label = last_actions_q_values
-        if current_score - last_score > 0:
-            label[last_action] = (current_score - last_score) * 1000
+            self.model.add(activation_last_layer)
         else:
-            label[last_action] = reward + gamma * max_q
+            self.model.add(Dense(2, activation=activation_last_layer, kernel_initializer=weight_initializer,
+                             bias_initializer=bias_initializer))
 
-        # not taking the first state into consideration
-        if last_state is not None:
-            # Update buffers
-            if len(buffer) < buffer_size:
-                buffer += [(last_state, label)]
-            else:
-                buffer = buffer[1:] + [(last_state, label)]
+        self.model.compile(optimizer=best_optimizer, loss=loss_function, metrics=None)
 
-        # train
-        if len(buffer) >= batch_size:
-            sample = random.sample(buffer, batch_size)
-            network.train(sample)
+    def train(self, sample):
+        # convert x, y to make it work
+        x = [el[0] for el in sample]
+        y = [el[1] for el in sample]
 
-        # choose the optimal action with a chance of 1 - epsilon
-        actions_indexes = np.arange(len(actions_q_values))
+        x = list(map(lambda d: list(d.values()), x))
+        x = np.array(x)
+        y = np.array(y)
 
-        optimal_action_to_take = np.argmax(actions_q_values)
-        random_action = np.random.choice(actions_indexes)
+        self.model.train_on_batch(x=x, y=y)
 
-        if np.random.uniform() < epsilon:
-            action = random_action
-        else:
-            action = optimal_action_to_take
+        # self.save_file()
 
-        # act accordingly
-        p.act(None if action == 0 else 119)
+    def Q(self, state):
+        # convert state to make it actually work
+        state = np.array([list(state.values()), ])
+        output = K.eval(self.model(state))
+        return output[0]
 
-        # update epsilon
-        if epsilon > 0.1:
-            epsilon = epsilon - 0.000001
+    def save_file(self):
+        if self.created_files is False:
+            counter = 0
+            for item in self.list_file:
+                if type(item) == dict and item != "":
+                    for value, key in zip(item.values(), item.keys()):
+                        self.created_file_name += key + "-" + str(value) + "_"
+                    self.created_file_name = self.created_file_name[:-1]
+                elif type(item) != dict:
+                    self.created_file_name += str(item) + "_"
+                counter += 1
+            self.created_files = True
 
-        # remember everything needed from the current state
-        last_action = action
-        last_state = current_state
-        last_actions_q_values = actions_q_values
-        last_score = current_score
+        self.model.save(filepath=self.created_file_name + "_model.h5")
+        self.model.save_weights(filepath=self.created_file_name + "_weights.h5")
 
-        # Log
-        sys.stdout.write(f'\rBottom: {game_height - current_state["next_pipe_bottom_y"]}, Top: {game_height - current_state["next_pipe_top_y"]}, Bird: {game_height - current_state["player_y"]}, Reward: {reward}')
-        sys.stdout.flush()
-
-
-def play(file_name, number_of_games=1):
-    game = FlappyBird(width=game_width, height=game_height, pipe_gap=game_pipe_gap)
-
-    p = PLE(game, display_screen=True, force_fps=False, frame_skip=6)
-    p.init()
-
-    network = Network()
-    network.load(file_name, rename=False)
-
-    for i in range(number_of_games):
-        if i > 0:
-            p.reset_game()
-        while not p.game_over():
-            state = p.getGameState()
-            actions_q_values = network.Q(state).tolist()
-            action_taken_index = np.argmax(actions_q_values)
-
-            p.act(None if action_taken_index == 0 else 119)
+    def load(self, file_name, rename=True):
+        if rename is True:
+            position, i, no_of_underscores = None, 0, 0
+            for ch in file_name:
+                if ch == "_":
+                    no_of_underscores += 1
+                if no_of_underscores == 6:
+                    position = i
+                    break 
+                i += 1
 
 
-option = input('Do you want to train me or see me play? (Write "learn" or "play")\n')
-while option.lower() not in ['play', 'learn']:
-    option = input('Write "learn" or "play"\n')
-if option.lower() == 'learn':
-    file = input('Where should I get the weights from?(leave empty for new network)\n')
-    if file == "":
-        file = None
+            new_file_name = file_name[position + 1:]
+            self.created_file_name += new_file_name
 
-    statistics = input('Would you like to see statistics about Flappy? (yes/no)\n')
-    if statistics.lower() == 'yes':
-        statistics = True
-    else:
-        statistics = False
-    
-    gap_div = input('Enter gap division (leave empty for default value (3)) \n')
-    if gap_div == "":
-        gap_div = 3
-    else:
-        gap_div = int(gap_div)
+        self.model = load_model(file_name + "_model.h5")
+        self.model.load_weights(file_name + "_weights.h5")
 
-    gamma = input('Enter gamma value (leave empty for default value (0.75)) \n')
-    if gamma == "":
-        gamma = 0.75
-    else:
-        gamma = float(gamma)
-    
-    epsilon = input('Enter epsilon value (leave empty for default value (0.9)) \n')
-    if epsilon == "":
-        epsilon = 0.9
-    else:
-        epsilon = float(epsilon)
-    
-    batch_size = input('Enter batch size (leave empty for default value (128)) \n')
-    if batch_size == "":
-        batch_size = 128
-    else:
-        batch_size = int(batch_size)
-
-    reward_weight_decision = input('Would you add reward WEIGHT option? (yes/no) (false by default)\n')
-    if reward_weight_decision == "" or reward_weight_decision == 'no':
-        reward_weight_decision = False
-    elif reward_weight_decision == 'yes':
-        reward_weight_decision = True
-
-    q_learning(file, statistics, gap_div, gamma, epsilon, batch_size, reward_weight_decision)
-    
-else:
-    file = input('Where should I get the weights from?\n')
-    number_of_games_to_play = input('How many games should I play?\n')
-    play(file, int(number_of_games_to_play))
+        if rename is True:
+            os.rename(file_name + "_model.h5", self.created_file_name + "_model.h5") 
+            os.rename(file_name + "_weights.h5", self.created_file_name + "_weights.h5")
