@@ -13,8 +13,7 @@ class Network:
         self.list_file = []  # creating a part of the file name
         self.batch_size = batch_size
 
-        self.created_file_name = "batch_size-" + str(batch_size) + "_gamma-" + str(gamma) + "_eps-" + str(
-            epsilon) + "_gap_division-" + str(gap_division) + "_"
+        self.created_file_name = "batch_size-" + str(batch_size) + "_gamma-" + str(gamma) + "_eps-" + str(epsilon) + "_gap_division-" + str(gap_division) + "_"
         self.created_files = False
 
     def create_layers(self, activation_hidden_layers, activation_last_layer, weight_initializer, bias_initializer,

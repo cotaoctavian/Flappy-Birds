@@ -289,7 +289,7 @@ if option.lower() == 'learn':
     if gap_div == "":
         gap_div = 3
     else:
-        gap_div = int(gap_div)
+        gap_div = float(gap_div)
 
     gamma = input('Enter gamma value (leave empty for default value (0.75)) \n')
     if gamma == "":
