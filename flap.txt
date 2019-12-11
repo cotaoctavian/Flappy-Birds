@@ -25,6 +25,7 @@ batch_size-128_gamma-0.75_eps-0.1_gap_division-3_tanh_tanh_glorot_uniform_glorot
 batch_size-128_gamma-0.9_eps-1.0_gap_division-2_tanh_linear_glorot_uniform_glorot_uniform_binary_crossentropy_Adadelta_lr-0.1_rho-0.95
 batch_size-128_gamma-0.9_eps-0.5_gap_division-2_tanh_tanh_glorot_uniform_glorot_uniform_binary_crossentropy_Adadelta_lr-0.1_rho-0.95
 batch_size-128_gamma-0.75_eps-0.9_gap_division-2.5_tanh_linear_glorot_uniform_glorot_uniform_squared_hinge_Adadelta_lr-0.05_rho-0.85
+batch_size-64_gamma-0.75_eps-0.6_gap_division-2.0_tanh_leaky_relu_random_uniform_random_uniform_squared_hinge_Adadelta_lr-0.1_rho-0.95
 batch_size-128_gamma-0.85_eps-0.1_gap_division-2.5_tanh_tanh_glorot_uniform_glorot_uniform_logcosh_Adadelta_lr-0.1_rho-0.95 <- pretty good
 
 
