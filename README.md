@@ -7,3 +7,10 @@ The learning environment used is from [PyGame-Learning-Environment](https://pyga
 </br>
 </br>
 <img src="demo.gif" alt="demo" height="480"/>
+</br>
+</br>
+Results of our best agent ( vertical -> score, horizontal -> test index number):
+</br>
+<img src="demo.png" alt="demo" height="480"/>
+</br>
+Two hidden layers, with leaky relu and tanh as activation functions and Adadelta as optimizer.
