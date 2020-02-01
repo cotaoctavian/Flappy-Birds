@@ -9,7 +9,7 @@ The learning environment used is from [PyGame-Learning-Environment](https://pyga
 <img src="demo.gif" alt="demo" height="480"/>
 </br>
 </br>
-Results of our best agent ( vertical -> score, horizontal -> number of games):
+Results of our best agent ( vertical -> score, horizontal -> number of games played):
 </br>
 <img src="demo.png" alt="demo" height="480"/>
 </br>
